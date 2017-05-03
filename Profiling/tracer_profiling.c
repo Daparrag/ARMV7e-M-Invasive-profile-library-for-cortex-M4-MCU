@@ -108,8 +108,13 @@ void __attribute__ ((no_instrument_function))generate_file(struct profile_fun *e
 
 
 void __attribute__ ((destructor,no_instrument_function)) trace_end(void){
+		struct profile *p = &_profparam;
+		generate_file(current_parent);
+		p->state=PROF_OFF;
+		p->already_setup=0;
+		free(current_parent);
+		free(_prof_file);
 
-		fclose(Profiling_log);
 }
 
 int __attribute__ ((no_instrument_function)) __cyg_profile_insert_new_entry(void *func,struct profile_fun *e){
@@ -253,11 +258,13 @@ void __attribute__ ((no_instrument_function)) Error_profile(void) {
 
 
 
-void __attribute__ ((no_instrument_function)) start_profile(void){
+void __attribute__ ((no_instrument_function)) start_profile(int start){
+	if(start){
 	struct profile * p = &_profparam;
 	p->state=PROF_BUSY;
 	p->already_setup=0;
 	initialise_monitor_handles();
 	printf("SemiHosting is on \n");
+	}
 }
 

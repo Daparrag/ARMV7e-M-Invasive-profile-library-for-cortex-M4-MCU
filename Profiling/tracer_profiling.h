@@ -39,7 +39,7 @@
 #define PROF_OFF  	0
 #define	PROF_BUSY	2
 
-#define MAX_ENTRIES   5
+#define MAX_ENTRIES   10
 
 struct profile {
 	int state;
@@ -69,7 +69,7 @@ void __attribute__ ((constructor,no_instrument_function)) trace_begin (void);
 void __attribute__ ((destructor,no_instrument_function)) trace_end(void);
 void __attribute__ ((no_instrument_function)) __cyg_profile_func_enter(void *func, void *caller);
 void __attribute__ ((no_instrument_function)) __cyg_profile_func_exit(void *func, void *caller);
-void __attribute__ ((no_instrument_function)) start_profile(void);
+void __attribute__ ((no_instrument_function)) start_profile(int start);
 void __attribute__ ((no_instrument_function)) Error_profile(void);
 
 #endif /* __TRACER_PROFILING_H */
