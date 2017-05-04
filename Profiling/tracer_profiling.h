@@ -39,7 +39,7 @@
 #define PROF_OFF  	0
 #define	PROF_BUSY	2
 
-#define MAX_ENTRIES   10
+#define MAX_ENTRIES  20
 
 struct profile {
 	int state;

@@ -62,7 +62,7 @@ void __attribute__ ((constructor,no_instrument_function))  trace_begin (void){
 		Profiling_log= fopen(path,"w+");
 		if(Profiling_log!=NULL){
 				fseek(Profiling_log,0,SEEK_SET);
-				fputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>",Profiling_log);
+				fputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",Profiling_log);
 				sprintf(string_app,"<table xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n xsi:noNamespaceSchemaLocation=\"schema_table.xsd\">\n <header> <hdr_name_1>cycles</hdr_name_1> <hdr_name_2>fun_addrs</hdr_name_2> <hdr_name_3>fun_name</hdr_name_3> </header>\n");
 				fputs(string_app,Profiling_log);
 				fclose(Profiling_log);
@@ -103,6 +103,9 @@ void __attribute__ ((no_instrument_function))generate_file(struct profile_fun *e
 	fputs(string_app,Profiling_log);
 	sprintf(string_app,"</row> \n");
 	fputs(string_app,Profiling_log);
+	if(e->parent_addrs==NULL){
+		fputs("</table>",Profiling_log);
+	}
 	fclose(Profiling_log);
 }
 
@@ -110,6 +113,7 @@ void __attribute__ ((no_instrument_function))generate_file(struct profile_fun *e
 void __attribute__ ((destructor,no_instrument_function)) trace_end(void){
 		struct profile *p = &_profparam;
 		generate_file(current_parent);
+
 		p->state=PROF_OFF;
 		p->already_setup=0;
 		free(current_parent);
@@ -184,9 +188,6 @@ void __attribute__ ((no_instrument_function)) __cyg_profile_func_enter(void *fun
 	av_profile += (*((uint32_t *) DWT_CYCCNT_PROFILE));/*get the current counter value*/
 
 		if(current_parent->fun_addrs==func){
-			int index=__cyg_profile_insert_new_entry(func,current_parent->next_fun[current_parent->num_child]);/*insert a new element*/
-			/*1.1) should be a recursive call if "in=1" or a function called many times "in=0"*/
-			if(index==-1)Error_profile();
 			current_parent->count+=1;
 				if(!in){
 					/*function called many times*/
@@ -196,9 +197,15 @@ void __attribute__ ((no_instrument_function)) __cyg_profile_func_enter(void *fun
 							av_profile =0;
 							*DWT_CYCCNT_PROFILE = 0; /* 4.reset the counter*/
 							*DWT_CONTROL_PROFILE = *DWT_CONTROL_PROFILE | 1; /*start to counter the ticks*/
+				}else{
+					int index=__cyg_profile_insert_new_entry(func,current_parent->next_fun[current_parent->num_child]);/*insert a new element*/
+					/*1.1) should be a recursive call if "in=1" or a function called many times "in=0"*/
+					if(index==-1)Error_profile();
+					current_parent=current_parent->next_fun[index];/*going to the new current parent*/
+					*DWT_CONTROL_PROFILE = *DWT_CONTROL_PROFILE ^ 1; /* enable the counter*/
 				}
 				in=1;
-				current_parent=current_parent->next_fun[index];/*going to the new current parent*/
+
 			}else{
 				/*It is necesary to evaluate the address of all the children*/
 				/*in case in which exist a children with the same address the current_parent go into th child
