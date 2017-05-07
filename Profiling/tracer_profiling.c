@@ -27,6 +27,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "tracer_profiling.h"
+#include<malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -38,7 +39,8 @@
 /* Private variables ---------------------------------------------------------*/
 char string_app[512];
 static FILE * Profiling_log;
-static char path[]="C:\\Users\\Homer\\Documents\\Profiling_M4-Optimus\\Projects\\Multi\\Applications\\CODEC_OPUS_OPT\\SW4STM32\\STM32F446RE-Nucleo\\CODEC_OPUS_OPT\\CODEC_OPUS_OPT\\cprof.out";
+static char file_name[225];
+static char path[512]="C:\\Users\\Homer\\Documents\\Profiling_M4-Optimus\\Projects\\Multi\\Applications\\CODEC_OPUS_OPT\\SW4STM32\\STM32F446RE-Nucleo\\CODEC_OPUS_OPT\\CODEC_OPUS_OPT\\";
 struct profile _profparam = {PROF_OFF, 0};
 struct profile_fun * _prof_file;
 struct profile_fun * current_parent;
@@ -52,8 +54,7 @@ volatile uint32_t *SCB_DEMCR_PROFILE = (uint32_t *) 0xE000EDFC; //address of the
 volatile uint32_t av_profile = 0;
 extern void  __attribute__ ((no_instrument_function)) initialise_monitor_handles(void);
 
-
-
+/* required for gcc ARM Embedded 4.9-2015-q2 */
 
 void __attribute__ ((constructor,no_instrument_function))  trace_begin (void){
 	struct profile * p = &_profparam;
@@ -63,7 +64,7 @@ void __attribute__ ((constructor,no_instrument_function))  trace_begin (void){
 		if(Profiling_log!=NULL){
 				fseek(Profiling_log,0,SEEK_SET);
 				fputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",Profiling_log);
-				sprintf(string_app,"<table xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n xsi:noNamespaceSchemaLocation=\"schema_table.xsd\">\n <header> <hdr_name_1>cycles</hdr_name_1> <hdr_name_2>fun_addrs</hdr_name_2> <hdr_name_3>fun_name</hdr_name_3> </header>\n");
+				sprintf(string_app,"<table xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n xsi:noNamespaceSchemaLocation=\"schema_table.xsd\">\n <header> <hdr_name_1>cycles</hdr_name_1> <hdr_name_2>fun_addrs</hdr_name_2> <hdr_name_3>fun_name</hdr_name_3> </header>\n <!--Tracer Profile for %s -->\n",file_name);
 				fputs(string_app,Profiling_log);
 				fclose(Profiling_log);
 				p->already_setup=1;
@@ -90,7 +91,7 @@ void __attribute__ ((no_instrument_function))generate_file(struct profile_fun *e
 	int i;
 	for(i=0;i < e->num_child;i++){
 		Profiling_log=fopen(path,"a");
-		fputs("<row>\n",Profiling_log);
+		fputs("<row>\n\t",Profiling_log);
 		fclose(Profiling_log);
 		generate_file(e->next_fun[i]);
 	}
@@ -101,7 +102,7 @@ void __attribute__ ((no_instrument_function))generate_file(struct profile_fun *e
 							e->count
 					) ;
 	fputs(string_app,Profiling_log);
-	sprintf(string_app,"</row> \n");
+	sprintf(string_app,"</row>\n");
 	fputs(string_app,Profiling_log);
 	if(e->parent_addrs==NULL){
 		fputs("</table>",Profiling_log);
@@ -109,16 +110,21 @@ void __attribute__ ((no_instrument_function))generate_file(struct profile_fun *e
 	fclose(Profiling_log);
 }
 
+void __attribute__ ((no_instrument_function))deallocate_node(struct profile_fun *e){
+	int i;
+	for(i=0;i < e->num_child;i++){
+		deallocate_node(e->next_fun[i]);
+		}
+	free(e);
+}
 
 void __attribute__ ((destructor,no_instrument_function)) trace_end(void){
 		struct profile *p = &_profparam;
-		generate_file(current_parent);
-
-		p->state=PROF_OFF;
-		p->already_setup=0;
-		free(current_parent);
-		free(_prof_file);
-
+			generate_file(current_parent);
+			p->state=PROF_OFF;
+			p->already_setup=0;
+			free(_prof_file);
+			free(current_parent);
 }
 
 int __attribute__ ((no_instrument_function)) __cyg_profile_insert_new_entry(void *func,struct profile_fun *e){
@@ -167,7 +173,7 @@ void __attribute__ ((no_instrument_function)) __cyg_profile_func_enter(void *fun
 		_prof_file->count=1;
 		_prof_file->cycles=0;
 		_prof_file->deph_level=0;
-		_prof_file->fun_addrs=func;
+		_prof_file->fun_addrs=caller;
 		_prof_file->parent_addrs=NULL;
 		_prof_file->next_fun[0]=NULL;
 		current_parent=_prof_file;
@@ -192,7 +198,6 @@ void __attribute__ ((no_instrument_function)) __cyg_profile_func_enter(void *fun
 				if(!in){
 					/*function called many times*/
 					current_parent->cycles+=av_profile;/*update the current_parent cyclecount*/
-
 							/*restart the counter*/
 							av_profile =0;
 							*DWT_CYCCNT_PROFILE = 0; /* 4.reset the counter*/
@@ -202,7 +207,7 @@ void __attribute__ ((no_instrument_function)) __cyg_profile_func_enter(void *fun
 					/*1.1) should be a recursive call if "in=1" or a function called many times "in=0"*/
 					if(index==-1)Error_profile();
 					current_parent=current_parent->next_fun[index];/*going to the new current parent*/
-					*DWT_CONTROL_PROFILE = *DWT_CONTROL_PROFILE ^ 1; /* enable the counter*/
+					*DWT_CONTROL_PROFILE = *DWT_CONTROL_PROFILE | 1; /*start to counter the ticks*/
 				}
 				in=1;
 
@@ -223,7 +228,7 @@ void __attribute__ ((no_instrument_function)) __cyg_profile_func_enter(void *fun
 					/*this is a new entry therefore is necessary to create a new child*/
 					int32_t index=__cyg_profile_insert_new_entry(func,current_parent->next_fun[current_parent->num_child]);
 					if(index==-1)Error_profile();
-					current_parent->cycles=av_profile;/*update the parent cycles*/
+					current_parent->cycles+=av_profile;/*update the parent cycles*/
 					current_parent=current_parent->next_fun[index];/*update the current parent*/
 					/*reset the counter*/
 					}
@@ -249,6 +254,7 @@ void __attribute__ ((no_instrument_function)) __cyg_profile_func_exit(void *func
 	in=0;
 	current_parent->cycles+=av_profile;/*update the cycles in the current_parent or the root*/
 	if(global_depth){
+		//struct profile_fun * tmp=current_parent->parent_addrs;
 		/*global_depth!=0 control variable indicates that we are not in the root of the tree*/
 		global_depth-=1;/*decrease the depth*/
 		current_parent=current_parent->parent_addrs;
@@ -265,13 +271,14 @@ void __attribute__ ((no_instrument_function)) Error_profile(void) {
 
 
 
-void __attribute__ ((no_instrument_function)) start_profile(int start){
-	if(start){
+void __attribute__ ((no_instrument_function)) start_profile(char * filename){
 	struct profile * p = &_profparam;
 	p->state=PROF_BUSY;
 	p->already_setup=0;
+	strcpy(file_name,filename);
+	strcat(path,filename);
 	initialise_monitor_handles();
 	printf("SemiHosting is on \n");
-	}
+
 }
 
