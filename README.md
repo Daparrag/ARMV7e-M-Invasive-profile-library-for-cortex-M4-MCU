@@ -2,6 +2,9 @@
 This is a simple library used for make a profile of your applications in the cortex M4 micro controller.
 
 
+<img src="https://github.com/Daparrag/ARMV7e-M-Invasive-profile-library-for-cortex-M4-MCU/blob/master/Screenshots/profiling.png" alt="Profile Semihosting Architecture" width="500px" />
+
+
 this library exploites the Semihosting capabilities present in the Cortex-M4 microcontroller's family  and the  **no_instrument_function** gnu-facilities for acquire the pair  **Call and Called functions adresses**.
 
 As well it includes **a simple counter** used for calculate an aproximated **number of cycles** spended in each function's in execution. At the end a **XML file** is generated with all the profile information Allowing an easy visualization independent of the platform used by his analysis. 
