@@ -16,7 +16,7 @@ The view of information had been done through a graphical user interface able to
 showing the results in a friendly tree-table. This table contains: name of a function, number of cycles, 
 and the address associated.
 
-<img src="https://github.com/Daparrag/ARMV7e-M-Invasive-profile-library-for-cortex-M4-MCU/Screenshots/GUI.png" alt="Profile Semihosting GUI" width="1000px" /> 
+<img src="https://github.com/Daparrag/ARMV7e-M-Invasive-profile-library-for-cortex-M4-MCU/blob/master/Screenshots/GUI.jpg" alt="Profile Semihosting GUI" width="1000px" /> 
 
 **Note**:
 **This is the first version** of this library, therefore you are welcome to modified it, and report any issue. I'm working on this in my free time that's why I will try to update some documentation soon and improve the code.
