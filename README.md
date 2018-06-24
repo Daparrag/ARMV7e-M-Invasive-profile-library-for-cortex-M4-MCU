@@ -1,16 +1,15 @@
 # ARMV7e-M invasive profile library for cortexM4 MCU
-This is a simple library used for make a profile of your applications in the cortex M4 micro controller.
+This is a simple library used to profile of your applications in the cortex M4 micro controller.
 
 
 <img src="https://github.com/Daparrag/ARMV7e-M-Invasive-profile-library-for-cortex-M4-MCU/blob/master/Screenshots/profiling.png" alt="Profile Semihosting Architecture" width="1000px" />
 
 
-this library exploites the Semihosting capabilities present in the Cortex-M4 microcontroller's family  and the  **no_instrument_function** gnu-facilities for acquire the pair  **Call and Called functions addresses**.
+this library makes use of Semihosting capabilities in the Cortex-M4 microcontroller's family, additionally uses the **no_instrument_functions** provided by the gnu compiler that returns two address  **(Call and Called function addresses)**.
 
-As well it includes **a simple counter** used for calculate an approximated **number of cycles** spending in each function's in execution. At the end a **XML file** is generated with all the profile information Allowing an easy visualization independent of the platform used by his analysis. 
+As well it includes **a simple counter** used to approximate the **number of cycles** spending by each function. At the end the library returns a **XML file** with the whole profile information to be visualized by and external platform. 
 
 **GUI**
-
 
 The view of information had been done through a graphical user interface able to parse the XML and
 showing the results in a friendly tree-table. This table contains: name of a function, number of cycles, 
@@ -19,9 +18,9 @@ and the address associated.
 <img src="https://github.com/Daparrag/ARMV7e-M-Invasive-profile-library-for-cortex-M4-MCU/blob/master/Screenshots/GUI.jpg" alt="Profile Semihosting GUI" width="800px" /> 
 
 **Note**:
-**This is the first version** of this library, therefore you are welcome to modified it, and report any issue. I'm working on this in my free time that's why I will try to update some documentation soon and improve the code.
+**This is the first version** of this library, therefore you are welcome to  use, change or report any issue. I'm working on this during my free time and therefore I'll try to  update documentation soon and improve the code.
 
-Form my point of view this is no an efficient implementation since I'm using a tree for allocate the different *calling paths* ut is interesting because there is no any open source implementation of profiling for this MCU family exploiting the semihosting communication in the DBG mode.  
+Form my point of view this is no an efficient implementation since I'm using a tree data-structure to allocate the different *calling paths* it is interesting because there is no any open source implementation of profiling for this MCU family exploiting the semihosting communication in the DBG mode.  
    
 
 
