@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<!-- definition of simple elements -->
+<xs:element name="hdr_name_1" type="xs:string"/>
+<xs:element name="hdr_name_2" type="xs:string"/>
+<xs:element name="hdr_name_3" type="xs:string"/>
+
+<xs:element name="cycles" type="xs:integer"/>
+<xs:element name="Func_addr" type="xs:string"/>
+<xs:element name="Func_name" type="xs:string"/>
+<xs:element name="Ncalls" type="xs:integer"/>
+<!-- definition of complex elements -->
+<xs:element name="header">
+  <xs:complexType>
+    <xs:sequence>
+      <xs:element ref="hdr_name_1"/>
+      <xs:element ref="hdr_name_2"/>
+      <xs:element ref="hdr_name_3"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="row">
+  <xs:complexType>
+    <xs:choice>
+		<xs:element ref="row" minOccurs="0" maxOccurs="unbounded"/>
+		<xs:element ref="cycles"/>
+		<xs:element ref="Func_addr"/>
+		<xs:element ref="Func_name"/>
+		<xs:element ref="Ncalls"/>
+    </xs:choice>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="table">
+<xs:complexType>
+    <xs:sequence>
+	<xs:element ref="header"/>
+	<xs:element ref="row"/>
+	</xs:sequence> 
+ </xs:complexType>
+</xs:element>
+</xs:schema>
